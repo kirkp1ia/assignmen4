@@ -19,12 +19,15 @@ int main(int argc, char *argv[]) {
   void fulladdr(int a, int b, int incary, int *sum, int *outcary);
   void add4(int a, int b, int incary, int *sum, int *outcary);
 
-  int a=3, b=5, s, oc;
+  int a=8, b=7, s, oc;
 
   halfaddr(a, b, &s, &oc);
   printf("s: %d\nco: %d\n", s, oc);
 
   fulladdr(a, b, oc, &s, &oc);
+  printf("s: %d\nco: %d\n", s, oc);
+
+  add4(a, b, 0, &s, &oc);
   printf("s: %d\nco: %d\n", s, oc);
 
 
@@ -111,21 +114,30 @@ void fulladdr(int a, int b, int incary, int *sum, int *outcary) {
  * the first four bits set.
  */
 void add4(int a, int b, int incary, int *sum, int *outcary) {
-  unsigned int _4(int a);
   void fulladdr(int a, int b, int incary, int *sum, int *outcary);
+  int ta, tb, tmps, tmpc;
+  unsigned int _4(int a);
   *sum = 0;
-  int ta=_4(a), tb=_4(b), tmps=0, tmpc=incary;
+  ta = _4(a);
+  tb = _4(b);
+  tmpc = incary;
 
-  fulladdr(a, b, tmpc, &tmps, &tmpc);
+  fulladdr(ta, tb, tmpc, &tmps, &tmpc);
   *sum = *sum | tmps;
+  ta >>= 1;
+  tb >>= 1;
 
-  fulladdr(a, b, tmpc, &tmps, &tmpc);
+  fulladdr(ta, tb, tmpc, &tmps, &tmpc);
   *sum = *sum | tmps<<1;
+  ta >>= 1;
+  tb >>= 1;
 
-  fulladdr(a, b, tmpc, &tmps, &tmpc);
+  fulladdr(ta, tb, tmpc, &tmps, &tmpc);
   *sum = *sum | tmps<<2;
+  ta >>= 1;
+  tb >>= 1;
 
-  fulladdr(a, b, tmpc, &tmps, &tmpc);
+  fulladdr(ta, tb, tmpc, &tmps, &tmpc);
   *sum = *sum | tmps<<3;
 
   *outcary = tmpc;
