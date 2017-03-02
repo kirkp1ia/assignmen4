@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   void halfaddr(int a, int b, int *sum, int *outcary);
   void fulladdr(int a, int b, int incary, int *sum, int *outcary);
   void add4(int a, int b, int incary, int *sum, int *outcary);
+  void magnitude4(int a, int *result);
 
   int a=8, b=7, s, oc;
 
@@ -29,6 +30,9 @@ int main(int argc, char *argv[]) {
 
   add4(a, b, 0, &s, &oc);
   printf("s: %d\nco: %d\n", s, oc);
+
+  magnitude4(0x0b, &s);
+  printf("magnitude: %d\n", s);
 
 
   exit(0);
@@ -141,4 +145,39 @@ void add4(int a, int b, int incary, int *sum, int *outcary) {
   *sum = *sum | tmps<<3;
 
   *outcary = tmpc;
+}
+
+/* Returns the absolute value of a.
+ * Problem: Find the magnitude of a. The magnitude of a is synonymous to the
+ * absolute value of a. For example, if a = 8, abs(a) = 8. Also, if a = -8, then
+ * abs(a) is still 8. Think of it as the distance away from 0 that a is. This
+ * function is to implement the solution without any control-flow statements.
+ * Additionally, it will use the add4 function and the xor operator within it's
+ * solution.
+ *
+ * Solution: The basic idea or this function is to retrieve the 1's compliment
+ * of a. This is done by creating a mask for a by bit shifting it 7 times to the
+ * right. Note that only the first 4 bits on a will be evaluated. They will be
+ * extracted and put into another variable. Next, add a to that mask using the
+ * add4 function and then compare that value to mask again using an exclusive or
+ * operator.
+ */
+void magnitude4(int a, int *result) {
+  void add4(int a, int b, int incary, int *sum, int *outcary);
+  unsigned int _1(int a);
+  unsigned int _4(int a);
+  int incary=0, sum, outcary;
+  char mask;
+  char ta = (char) a;
+
+  char tmpmask = _4(ta) >> 3;
+  char fmask = _1(tmpmask);
+  fmask = (fmask << 1) + _1(tmpmask);
+  fmask = (fmask << 1) + _1(tmpmask);
+  fmask = (fmask << 1) + _1(tmpmask);
+  fmask = (fmask & 0x0F) | (fmask << 4);
+
+  mask = fmask;
+  add4((int) mask, (int) ta, incary, &sum, &outcary);
+  *result = _4((char) sum ^ mask);
 }
