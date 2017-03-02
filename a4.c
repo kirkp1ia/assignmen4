@@ -1,5 +1,4 @@
-/*
- * Names: Ian Kirkpatrick, Benjamin Groseclose, Nathan Johnson,
+/* Names: Ian Kirkpatrick, Benjamin Groseclose, Nathan Johnson,
  * Class: CPS 360,                            Section: Spring 2017
  * Times: Tuesday, Thursday 9:30 - 11:00      Assignment: 04
  * Due: March 2, 2017                      Started: February 27, 2017
@@ -10,11 +9,37 @@
  * of the circuits. The program should take input from the command line of
  * hexidecimal values. Each function will use the inputs as x, y, cary-in and/or
  * cary-out. They are refered to as <arg-a>, <arg-b>, <arg-c>, etc...
+ *
+ * Solution: We solve each function given below using boolean operations only.
+ * Except for the print function where we need while loops to search through
+ * the respective 8-bit sets. For several of the function we discovered how to
+ * input the boolean function from the truth and return that result. We created
+ * 2 addition functions. _1 which will extract the 0s place bit from the number
+ * and _4 which will extract the lower order bits of the number. The ultimately
+ * called all these functions in the main and printout out the results
+ * according worksheet.
+ *
+ * NOTE: Was able to call mux2by1 three times in the mux4by1 to get the result.
+ * The magnitude was difficult to remember but ultimately was easy once we
+ * recalled and looked back in out notes.
+ *
+ * Sample output:
+ *             "label"
+ *             "label" ######## ######## ######## ########
  */
 #include<stdio.h>
 #include<stdlib.h>
 
+/* Problem: Initialize variables for program to be used in each functions and
+ * printed out to stdout. Call the functions and then print out the results
+ * after each call.
+ *
+ * Solution: Use printresult to print the label and result after calling the
+ * function for each module call to the digital circuit functions. Then exit the
+ * program.
+ */
 int main(int argc, char *argv[]) {
+  void readargs(int *a, int *b, int *c, int argc, char *argv[]);
   void halfaddr(int a, int b, int *sum, int *outcary);
   void fulladdr(int a, int b, int incary, int *sum, int *outcary);
   void add4(int a, int b, int incary, int *sum, int *outcary);
@@ -23,60 +48,110 @@ int main(int argc, char *argv[]) {
   void partiy3gen(int a, int *outparity);
   void mux2by1(int a, int b, int select, int *out);
   void mux4by1(int a, int b, int select, int *out);
+  void printresult(char *label, int a);
 
-  int a=7, b=0xa8, s, oc, parity, out;
+  int a, b, ic, s, oc, parity, out;
+
+  readargs(&a, &b, &ic, argc, argv);
 
   halfaddr(a, b, &s, &oc);
-  printf("s: %d\nco: %d\n", s, oc);
+  printf("\nHalf-adder: \n");
+  printresult("sum:                ", s);
+  printresult("outcarry:           ", oc);
 
-  fulladdr(a, b, oc, &s, &oc);
-  printf("s: %d\nco: %d\n", s, oc);
+  fulladdr(a, b, ic, &s, &oc);
+  printf("\nFull-adder: \n");
+  printresult("sum:                ", s);
+  printresult("outcarry:           ", oc);
 
-  add4(a, b, 0, &s, &oc);
-  printf("s: %d\nco: %d\n", s, oc);
-
-  magnitude4(a, &s);
-  printf("magnitude: %d\n", s);
+  add4(a, b, ic, &s, &oc);
+  printf("\n4-bit-adder: \n");
+  printresult("sum:                ", s);
+  printresult("outcarry:           ", oc);
 
   partiy3gen(a, &parity);
-  printf("parity: %d\n", parity);
+  printf("\nparity3gen: \n");
+  printresult("parity-bit:         ", parity);
 
   paritychk4(a, &parity);
-  printf("parity: %d\n", parity);
+  printf("\nparitychk4: \n");
+  printresult("check-bit:          ", parity);
 
-  mux2by1(a, b, 2, &out);
-  printf("out: %d\n", out);
+  magnitude4(a, &s);
+  printf("\nmagnitude4: \n");
+  printresult("rslt:               ", s);
 
-  mux4by1(a, b, 5, &out);
-  printf("out: %d\n", out);
+  mux2by1(a, b, ic, &out);
+  printf("\nmux2by1: \n");
+  printresult("out:                ", out);
+
+  mux4by1(a, b, ic, &out);
+  printf("\nmux4by1: \n");
+  printresult("out:                ", out);
 
   exit(0);
 }
 
-/* Extract the first bit from a using the & bitwise operation. This will ignore
+/* Problem: Read arguments from argv (command line arguments passed from main),
+ * convert them from hexidecimal values to integers. Allow for less than 3
+ * inputs. If no inputs are given, display the usage message.
+ *
+ * Solution: Use an if, else if, else statement to see how many arguments were
+ * passed to the command line. Depending on how many were sent, set them to up
+ * to 3 pointers (a, b, c).
+ */
+void readargs(int *a, int *b, int *c, int argc, char *argv[]) {
+  void usage(char *arg);
+  char *setmessage();
+
+  if(argc == 2){
+    *a = (int) strtol(argv[1], NULL, 16);
+  }else if(argc == 3){
+    *a = (int) strtol(argv[1], NULL, 16);
+    *b = (int) strtol(argv[2], NULL, 16);
+  }else if(argc == 4){
+    *a = (int) strtol(argv[1], NULL, 16);
+    *b = (int) strtol(argv[2], NULL, 16);
+    *c = (int) strtol(argv[3], NULL, 16);
+  }else{
+    usage(setmessage());
+    exit(0);
+  }
+}
+
+/* Problem:
+ * Extract the first bit from a using the & bitwise operation. This will ignore
  * any bits after the first bit and return the result. For example, if a is
  * 0000 0000 0010 0011, then this will return 0000 0000 0000 0001. If a is
  * 0000 0000 0010 0010, then this will return 0000 0000 0000 0000.
+ *
+ * Solution: Simply use the & operator to extract the first four bits in a.
  */
 unsigned int _1(int a) {
   return a & 1;
 }
 
-/* Extract the first 4 bits from a using the & bitwise operation. This will
+/* Problem:
+ * Extract the first 4 bits from a using the & bitwise operation. This will
  * ignore any bits after the first 4 bits and return the result. For example,
  * If a is 1001 1101 0010 1010, then this will return 0000 0000 0000 0010.
+ *
+ * Solution: Simply use the & operator to extract the first four bits in a.
  */
 unsigned int _4(int a) {
   return a & 0x0f;
 }
 
-/* Perform a half adder operation on a, and b. This is a software representation
- * of this circuit.
+/* Problem: Perform a half adder operation on a, and b. This is a software
+ * representation of this circuit. A half adder works similar to an exclusive or
+ * where the main output (sum in this case) will be set to 1 if only one of a or
+ * b is 1. Otherwise, sum will be a zero. The difference, however, is that if
+ * both a and b are 1, then outcary will be set to 1 because it caries over when
+ * a and b are combined.
  *
- * A half adder works similar to an exclusive or where the main output (sum in
- * this case) will be set to 1 if only one of a or b is 1. Otherwise, sum will
- * be a zero. The difference, however, is that if both a and b are 1, then
- * outcary will be set to 1 because it caries over when a and b are combined.
+ * Solution: Rewrite the boolean function for a fulladdr in C. There is not much
+ * difference in how the function is written in C versus how it's written on
+ * paper. The only difference is that the symbols change.
  *
  * The boolean function for this C function is:
  *      sum = a'b + ab'
@@ -94,15 +169,17 @@ void halfaddr(int a, int b, int *sum, int *outcary) {
   *outcary = _1(a) & _1(b);
 }
 
-/* Perform a full adder operation on a, b, and incary. This is a software
- * representation of this circuit.
+/* Problem: Perform a full adder operation on a, b, and incary as a software
+ * representation of this circuit. A full adder works similar to an exclusive or
+ * where the main output (sum in this case) will be set to 1 if only one of a,
+ * b, and incary is 1. The difference here is in two cases. If all 3 a, b, and
+ * incary are 1, then sum will be 1. Also, if at least two of the three inputs
+ * are 1, then outcary will be set to 1. This simulates adding the two and
+ * extracting the caryover to the next bit.
  *
- * A full adder works similar to an exclusive or where the main output (sum in
- * this case) will be set to 1 if only one of a, b, and incary is 1. The
- * difference here is in two cases. If all 3 a, b, and incary are 1, then sum
- * will be 1. Also, if at least two of the three inputs are 1, then outcary will
- * be set to 1. This simulates adding the two and extracting the caryover to the
- * next bit.
+ * Solution: Rewrite the boolean function for a fulladdr in C. There is not much
+ * difference in how the function is written in C versus how it's written on
+ * paper. The only difference is that the symbols change.
  *
  * The boolean function for this C function is:
  *      sum = a ^ b ^ incary
@@ -324,4 +401,76 @@ void mux4by1(int a, int b, int select, int *out) {
   mux2by1(y, z, s1, &muxyz);
 
   mux2by1(muxwx, muxyz, s2, out);
+}
+/* Problem: Printout the results of the function in a 8-bit groups for the whole
+ * integers. Will print out the the label given and then the correct integer in
+ * 8-bit format.
+ *
+ * Solution: We create the variables i and j as integers. We will need for while
+ * loops. Then set i = 4 because there are 4 sets of 8-bits. Next we print out
+ * the *label using the %s format. We create a while loop setting the condition
+ * to be i (when i isnt 0 it is true). Once inside the loop we set j = 8 cause
+ * there are 8 bits each set. Then we use a while loop with the condition j
+ * (true when j != 0). We then compare the a integer given with 0x80000000 which
+ * will see if 31th bit of the 4 bytes given is equal to one with the condition
+ * a & 0x80000000. If this is true we print 1, else we print 0, because then
+ * we know that bit does not hold a 1. We move through the number by shift-left
+ * each time. This is allow for the 0s bit to be reached after 32 bit shits
+ * total. (loop 4 times within that loop, loop another 8, 4*8 = 32). We then
+ * subtract one from both i and j to get the correct number of loops. After both
+ * loops have been completed print out a new line so that the next call is on a
+ * new line.
+ *
+ * Sample Output: "label: ######## ######## ######## ########"
+ *
+ * NOTE:
+ * We wanted to try our own version of printing results in base 2 because it's
+ * not something we've had to do before. This is why we did not choose to use
+ * the function you suggested as you did not explicitly say we had to use that.
+ */
+ void printresult(char *label, int a){
+   int i, j;
+   i = 4;
+
+   printf("%s", label);
+
+   while(i){
+    j = 8;
+     while(j){
+       if(a & 0x80000000) {
+         printf("1");
+       }
+       else {
+         printf("0");
+       }
+      a = a << 1;
+      j--;
+     }
+     i--;
+     printf(" ");
+   }
+
+   printf("\n");
+ }
+
+/* Problem: Return the usage message so that it can get called later in the
+ * program
+ *
+ * Solution: Return a string that is used as the usage message.
+ */
+char *setmessage(){
+ return "usage: ./a4 argument1 argument2 argument3.\n\
+ argument1: integer number in base 16 (hexidecimal) format. represents input number.\n\
+ argument2: integer number in base 16 (hexidecimal) format. represents input number.\n\
+ argument3: integer number in base 16 (hexidecimal) format. represents carryin or select number.";
+}
+
+/* Problem: When user does not correctly enter input this will be displayed to
+ * them to inform them of the correct input.
+ *
+ * Solution: Prints out arg and then terimates the program.
+ */
+void usage(char *arg){
+  fprintf(stderr, "%s\n", arg);
+  exit(0);
 }
